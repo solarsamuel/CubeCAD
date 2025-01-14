@@ -177,8 +177,8 @@ class CoordinateSystem3D:
         #mouse_x -= 250
         #mouse_y -= 250
         
-        mouse_x -= 80
-        mouse_y -= 400
+        mouse_x -= 90
+        mouse_y -= 410
 
         # Tile size and grid size
         tile_size = 20
