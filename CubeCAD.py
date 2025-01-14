@@ -13,11 +13,23 @@ class CoordinateSystem3D:
         # Initial camera settings
         self.camera = {"zoom": 1.0, "pan_x": 0, "pan_y": 0, "tilt_x": 0, "tilt_y": 0}
         self.last_mouse_pos = None
+        self.last_mouse_pos = None
+        self.right_mouse_down = False
+        self.hovered_square = None
 
         # Bind mouse events
         self.canvas.bind("<ButtonPress-1>", self.on_mouse_press)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
         self.canvas.bind("<MouseWheel>", self.on_mouse_wheel)
+        
+        self.canvas.bind("<ButtonPress-3>", self.on_right_mouse_press)
+        self.canvas.bind("<B3-Motion>", self.on_right_mouse_drag)
+        self.canvas.bind("<ButtonRelease-3>", self.on_right_mouse_release)
+        #self.canvas.bind("<Motion>", self.on_mouse_move)
+
+
+
+
 
         # Draw the initial scene
         self.draw_scene()
@@ -103,6 +115,27 @@ class CoordinateSystem3D:
         # Redraw the scene
         self.draw_scene()
 
+    def on_right_mouse_press(self, event):
+        self.right_mouse_down = True
+        self.last_mouse_pos = (event.x, event.y)
+
+    def on_right_mouse_drag(self, event):
+        if self.right_mouse_down and self.last_mouse_pos:
+            dx = event.x - self.last_mouse_pos[0]
+            dy = event.y - self.last_mouse_pos[1]
+
+            # Update pan
+            self.camera["pan_x"] += dx
+            self.camera["pan_y"] += dy
+
+            # Redraw the scene
+            self.draw_scene()
+
+            # Update last mouse position
+            self.last_mouse_pos = (event.x, event.y)
+
+    def on_right_mouse_release(self, event):
+        self.right_mouse_down = False
 
 if __name__ == "__main__":
     root = tk.Tk()
