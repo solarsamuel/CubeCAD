@@ -10,26 +10,25 @@ class CoordinateSystem3D:
         self.canvas = tk.Canvas(root, width=500, height=500, bg="white")
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
+        # Label for displaying mouse state
+        self.mouse_state_label = tk.Label(root, text="Mouse State: None", font=("Arial", 12))
+        self.mouse_state_label.pack()
+
         # Initial camera settings
         self.camera = {"zoom": 1.0, "pan_x": 0, "pan_y": 0, "tilt_x": 0, "tilt_y": 0}
         self.last_mouse_pos = None
-        self.last_mouse_pos = None
         self.right_mouse_down = False
-        self.hovered_square = None
+        self.mouse_wheel_pressed = False
 
         # Bind mouse events
         self.canvas.bind("<ButtonPress-1>", self.on_mouse_press)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
-        self.canvas.bind("<MouseWheel>", self.on_mouse_wheel)
-        
         self.canvas.bind("<ButtonPress-3>", self.on_right_mouse_press)
         self.canvas.bind("<B3-Motion>", self.on_right_mouse_drag)
         self.canvas.bind("<ButtonRelease-3>", self.on_right_mouse_release)
-        #self.canvas.bind("<Motion>", self.on_mouse_move)
-
-
-
-
+        self.canvas.bind("<ButtonPress-2>", self.on_middle_mouse_press)
+        self.canvas.bind("<B2-Motion>", self.on_middle_mouse_drag)
+        self.canvas.bind("<ButtonRelease-2>", self.on_middle_mouse_release)
 
         # Draw the initial scene
         self.draw_scene()
@@ -107,13 +106,32 @@ class CoordinateSystem3D:
             # Update last mouse position
             self.last_mouse_pos = (event.x, event.y)
 
-    def on_mouse_wheel(self, event):
-        # Zoom in or out
-        self.camera["zoom"] += event.delta / 1200
-        self.camera["zoom"] = max(0.1, self.camera["zoom"])  # Prevent negative zoom
+    def on_middle_mouse_press(self, event):
+        self.mouse_wheel_pressed = True
+        self.last_mouse_pos = (event.x, event.y)
+        self.mouse_state_label.config(text="Mouse State: Button Pressed")
 
-        # Redraw the scene
-        self.draw_scene()
+    def on_middle_mouse_drag(self, event):
+        if self.mouse_wheel_pressed and self.last_mouse_pos:
+            dy = event.y - self.last_mouse_pos[1]
+
+            # Zoom in or out based on mouse movement
+            zoom_direction = "In" if dy < 0 else "Out"
+            self.camera["zoom"] += -dy / 200
+            self.camera["zoom"] = max(0.1, self.camera["zoom"])  # Prevent negative zoom
+
+            # Update the label
+            self.mouse_state_label.config(text=f"Mouse State: Button Pressed, Zoom {zoom_direction}")
+
+            # Redraw the scene
+            self.draw_scene()
+
+            # Update last mouse position
+            self.last_mouse_pos = (event.x, event.y)
+
+    def on_middle_mouse_release(self, event):
+        self.mouse_wheel_pressed = False
+        self.mouse_state_label.config(text="Mouse State: Button Released")
 
     def on_right_mouse_press(self, event):
         self.right_mouse_down = True
@@ -136,6 +154,7 @@ class CoordinateSystem3D:
 
     def on_right_mouse_release(self, event):
         self.right_mouse_down = False
+
 
 if __name__ == "__main__":
     root = tk.Tk()
