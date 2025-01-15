@@ -1,5 +1,3 @@
-
-
 import tkinter as tk
 import math
 
@@ -16,17 +14,6 @@ class CoordinateSystem3D:
         self.button_frame = tk.Frame(root)
         self.button_frame.pack()
 
-        #self.add_cube_button = tk.Button(self.button_frame, text="Add Cube", command=self.toggle_add_cube)
-        #self.add_cube_button.pack(side=tk.LEFT, padx=5)
-
-       # self.reset_camera_button = tk.Button(self.button_frame, text="Reset Camera", command=self.reset_camera)
-        #self.reset_camera_button.pack(side=tk.LEFT, padx=5)
-
-        #self.status_label = tk.Label(root, text="Add Cube: OFF", font=("Arial", 12))
-        #self.status_label.pack()
-
-
-
         # Label for displaying mouse state
         self.mouse_state_label = tk.Label(root, text="Mouse State: None", font=("Arial", 12))
         self.mouse_state_label.pack()
@@ -37,32 +24,6 @@ class CoordinateSystem3D:
         self.right_mouse_down = False
         self.mouse_wheel_pressed = False
         
-        # Cube vertices
-        #self.cube_size = 20
-        #self.cube_vertices = [
-            #x, y, z
-            #(-10, -10, -10), (10, -10, -10), (10, 10, -10), (-10, 10, -10),
-         #   (0, 0, 0), (20, 0, 0), (20, 20, 0), (0, 20, 0),
-            #(-10, -10, 10), (10, -10, 10), (10, 10, 10), (-10, 10, 10)
-          #  (0, 0, 20), (20, 0, 20), (20, 20, 20), (0, 20, 20)
-        #]
-
-        #self.cube_faces = [
-         #   (0, 1, 2, 3),  # Back face
-          #  (4, 5, 6, 7),  # Front face
-           # (0, 4, 7, 3),  # Left face
-           # (1, 5, 6, 2),  # Right face
-            #(0, 1, 5, 4),  # Bottom face
-            #(3, 2, 6, 7),  # Top face
-        #]
-        
-        
-        
-        # Cube placement state
-       # self.add_cube = False
-        #self.cubes = []  # List to store cube positions
-        
-
         # Bind mouse events
         self.canvas.bind("<ButtonPress-1>", self.on_mouse_press)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
@@ -80,22 +41,6 @@ class CoordinateSystem3D:
         self.canvas.delete("all")
         self.draw_axes()
         self.draw_xy_plane()
-        #self.draw_cubes()
-        
-        #self.draw_cube()
-        
-    #def draw_cube(self):
-    #    """Draw the cube."""
-        # Project all vertices to 2D
-     #   projected_vertices = [self.project_3d_to_2d(*v) for v in self.cube_vertices]
-
-        # Draw each face as a filled polygon
-      #  for face in self.cube_faces:
-       #     face_coords = [projected_vertices[i] for i in face]
-        #    flat_coords = [coord for vertex in face_coords for coord in vertex]
-         #   self.canvas.create_polygon(
-          #      flat_coords, fill="gray", outline="black", width=2
-           # )
 
     def project_3d_to_2d(self, x, y, z):
         """Project 3D coordinates into 2D for drawing."""
@@ -213,21 +158,6 @@ class CoordinateSystem3D:
 
     def on_right_mouse_release(self, event):
         self.right_mouse_down = False
-
-    #def draw_cubes(self):
-     #   """Draw all added cubes."""
-     #   for cube in self.cubes:
-      #      x1, y1 = self.project_3d_to_2d(cube[0] - 10, cube[1] - 10, 0)
-       #     x2, y2 = self.project_3d_to_2d(cube[0] + 10, cube[1] + 10, 0)
-        #    self.canvas.create_rectangle(x1, y1, x2, y2, outline="black", fill="cyan")
-
-    #def toggle_add_cube(self):
-     #   self.add_cube = not self.add_cube
-      #  self.status_label.config(text=f"Add Cube: {'ON' if self.add_cube else 'OFF'}")
-
- #  def reset_camera(self):
-  #      self.camera = {"zoom": 1.0, "pan_x": 0, "pan_y": 0, "tilt_x": 0, "tilt_y": 0}
-   #     self.draw_scene()
 
     def on_canvas_click(self, event):
         if self.add_cube:
