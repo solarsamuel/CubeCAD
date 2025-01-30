@@ -8,7 +8,7 @@ class GridWidget(QWidget):
     def __init__(self, size=20, parent=None):
         super().__init__(parent)
         self.size = size  # Grid cell size
-        self.cols, self.rows = 20, 20  # Grid dimensions
+        self.cols, self.rows = 16, 16  # Grid dimensions
         self.grid = [[False for _ in range(self.cols)] for _ in range(self.rows)]
         self.hover_pos = None
         self.zoom = 1.0
@@ -59,7 +59,9 @@ class GridWidget(QWidget):
         # Compute bottom-left of the grid in local space
         grid_width = self.cols * self.size
         grid_height = self.rows * self.size
-        origin_x, origin_y = -grid_width // 2, grid_height // 2  # Bottom-left of grid
+        #origin_x, origin_y = -grid_width // 2, grid_height // 2  # Bottom-left of grid
+        origin_x = 0
+        origin_y = grid_height
 
         # Draw Grid
         for i in range(self.rows):
@@ -77,7 +79,8 @@ class GridWidget(QWidget):
 
         # X-Axis (Red, Right)
         painter.setPen(QColor(255, 0, 0))  # Red
-        painter.drawLine(origin_x, origin_y + 20 , origin_x + axis_length, origin_y) #start point coordintates to end point coordinates
+        #painter.drawLine(origin_x, origin_y + 20 , origin_x + axis_length, origin_y) #start point coordintates to end point coordinates
+        painter.drawLine(origin_x, origin_y  , origin_x + axis_length, origin_y)
         painter.drawText(origin_x + axis_length + 5, origin_y, "X")
 
         # Y-Axis (Green, Up)
