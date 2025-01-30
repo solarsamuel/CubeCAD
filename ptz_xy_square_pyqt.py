@@ -1,7 +1,6 @@
-
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QPainter, QColor, QTransform
 import math
 
@@ -13,25 +12,27 @@ class GridWidget(QWidget):
         self.grid = [[False for _ in range(self.cols)] for _ in range(self.rows)]
         self.hover_pos = None
         self.zoom = 1.0
-        self.pan_offset = QPoint(0, 0)
+        self.pan_offset = QPointF(0, 0)
         self.rotation_x = 0
         self.rotation_y = 0
         self.last_mouse_pos = None
         
         self.setMouseTracking(True)
 
+    def getTransform(self):
+        """Returns the current transformation matrix."""
+        transform = QTransform()
+        transform.translate(self.width() / 2, self.height() / 2)
+        transform.scale(self.zoom, self.zoom)
+        transform.translate(self.pan_offset.x(), self.pan_offset.y())
+        transform.rotate(self.rotation_y, Qt.YAxis)  # Side rotation
+        transform.rotate(self.rotation_x, Qt.XAxis)  # Up/down tilt
+        return transform
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-        painter.translate(self.width() // 2, self.height() // 2)
-        painter.scale(self.zoom, self.zoom)
-        painter.translate(self.pan_offset)
-
-        # Apply both tilt (X rotation) and rotation (Y rotation)
-        transform = QTransform()
-        transform.rotate(self.rotation_y, Qt.YAxis)  # Side rotation
-        transform.rotate(self.rotation_x, Qt.XAxis)  # Up/down tilt
-        painter.setTransform(transform, True)
+        painter.setTransform(self.getTransform(), True)
 
         for i in range(self.rows):
             for j in range(self.cols):
@@ -43,21 +44,26 @@ class GridWidget(QWidget):
                 painter.drawRect(x, y, self.size, self.size)
 
     def mouseMoveEvent(self, event):
-        x, y = (event.x() - self.width() // 2 - self.pan_offset.x()) / self.zoom, (event.y() - self.height() // 2 - self.pan_offset.y()) / self.zoom
-        row, col = int(y // self.size), int(x // self.size)
+        # Get inverse transformation to map screen coordinates back to grid coordinates
+        inverse_transform = self.getTransform().inverted()[0]
+        mouse_pos = inverse_transform.map(QPointF(event.x(), event.y()))
+
+        row, col = int(mouse_pos.y() // self.size), int(mouse_pos.x() // self.size)
         if 0 <= row < self.rows and 0 <= col < self.cols:
-                self.hover_pos = (row, col)
+            self.hover_pos = (row, col)
         else:
-                self.hover_pos = None
+            self.hover_pos = None
 
+        # Handle rotation
         if event.buttons() == Qt.RightButton and self.last_mouse_pos:
-                dx = event.x() - self.last_mouse_pos.x()
-                dy = event.y() - self.last_mouse_pos.y()
-                self.rotation_x += dy * 0.5  # Up/down tilt
-                self.rotation_y += dx * 0.5  # Left/right rotation
+            dx = event.x() - self.last_mouse_pos.x()
+            dy = event.y() - self.last_mouse_pos.y()
+            self.rotation_x += dy * 0.5  # Up/down tilt
+            self.rotation_y += dx * 0.5  # Left/right rotation
 
+        # Handle panning
         if event.buttons() == Qt.MidButton and self.last_mouse_pos:
-                self.pan_offset += event.pos() - self.last_mouse_pos
+            self.pan_offset += event.pos() - self.last_mouse_pos
 
         self.last_mouse_pos = event.pos()
         self.update()
