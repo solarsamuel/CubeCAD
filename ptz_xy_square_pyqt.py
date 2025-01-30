@@ -2,7 +2,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
 from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QTransform
 import math
 
 class GridWidget(QWidget):
@@ -26,7 +26,12 @@ class GridWidget(QWidget):
         painter.translate(self.width() // 2, self.height() // 2)
         painter.scale(self.zoom, self.zoom)
         painter.translate(self.pan_offset)
-        painter.rotate(self.rotation_x)
+
+        # Apply both tilt (X rotation) and rotation (Y rotation)
+        transform = QTransform()
+        transform.rotate(self.rotation_y, Qt.YAxis)  # Side rotation
+        transform.rotate(self.rotation_x, Qt.XAxis)  # Up/down tilt
+        painter.setTransform(transform, True)
 
         for i in range(self.rows):
             for j in range(self.cols):
@@ -41,17 +46,19 @@ class GridWidget(QWidget):
         x, y = (event.x() - self.width() // 2 - self.pan_offset.x()) / self.zoom, (event.y() - self.height() // 2 - self.pan_offset.y()) / self.zoom
         row, col = int(y // self.size), int(x // self.size)
         if 0 <= row < self.rows and 0 <= col < self.cols:
-            self.hover_pos = (row, col)
+                self.hover_pos = (row, col)
         else:
-            self.hover_pos = None
-        
+                self.hover_pos = None
+
         if event.buttons() == Qt.RightButton and self.last_mouse_pos:
-            self.rotation_x += (event.y() - self.last_mouse_pos.y()) * 0.5
-            self.rotation_y += (event.x() - self.last_mouse_pos.x()) * 0.5
-        
+                dx = event.x() - self.last_mouse_pos.x()
+                dy = event.y() - self.last_mouse_pos.y()
+                self.rotation_x += dy * 0.5  # Up/down tilt
+                self.rotation_y += dx * 0.5  # Left/right rotation
+
         if event.buttons() == Qt.MidButton and self.last_mouse_pos:
-            self.pan_offset += event.pos() - self.last_mouse_pos
-        
+                self.pan_offset += event.pos() - self.last_mouse_pos
+
         self.last_mouse_pos = event.pos()
         self.update()
 
