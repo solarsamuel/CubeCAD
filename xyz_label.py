@@ -32,17 +32,29 @@ class GridWidget(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
+        painter.setTransform(self.getTransform(), True)
+
+        #for i in range(self.rows):
+         #   for j in range(self.cols):
+          #      x, y = j * self.size, i * self.size
+           #     if self.grid[i][j]:
+            #        painter.fillRect(x, y, self.size, self.size, QColor('black'))
+             #   elif self.hover_pos == (i, j):
+              #      painter.fillRect(x, y, self.size, self.size, QColor('pink'))
+               # painter.drawRect(x, y, self.size, self.size)
+
+
 
         # Center the grid in the GUI window
-        painter.translate(self.width() // 2, self.height() // 2)
-        painter.scale(self.zoom, self.zoom)
-        painter.translate(self.pan_offset)
+        #painter.translate(self.width() // 2, self.height() // 2)
+        #painter.scale(self.zoom, self.zoom)
+        #painter.translate(self.pan_offset)
 
         # Apply tilt (X rotation) and rotation (Y rotation)
-        transform = QTransform()
-        transform.rotate(self.rotation_y, Qt.YAxis)  # Side rotation
-        transform.rotate(self.rotation_x, Qt.XAxis)  # Up/down tilt
-        painter.setTransform(transform, True)
+        #transform = QTransform()
+        #transform.rotate(self.rotation_y, Qt.YAxis)  # Side rotation
+        #transform.rotate(self.rotation_x, Qt.XAxis)  # Up/down tilt
+        #painter.setTransform(transform, True)
 
         # Compute bottom-left of the grid in local space
         grid_width = self.cols * self.size
@@ -52,7 +64,8 @@ class GridWidget(QWidget):
         # Draw Grid
         for i in range(self.rows):
             for j in range(self.cols):
-                x, y = origin_x + j * self.size, origin_y - i * self.size  # Adjusted for bottom-left origin
+                #x, y = origin_x + j * self.size, origin_y - i * self.size  # Adjusted for bottom-left origin
+                x, y = j * self.size, i * self.size
                 if self.grid[i][j]:
                         painter.fillRect(x, y, self.size, self.size, QColor('black'))
                 elif self.hover_pos == (i, j):
@@ -64,12 +77,13 @@ class GridWidget(QWidget):
 
         # X-Axis (Red, Right)
         painter.setPen(QColor(255, 0, 0))  # Red
-        painter.drawLine(origin_x, origin_y, origin_x + axis_length, origin_y)
+        painter.drawLine(origin_x, origin_y + 20 , origin_x + axis_length, origin_y) #start point coordintates to end point coordinates
         painter.drawText(origin_x + axis_length + 5, origin_y, "X")
 
         # Y-Axis (Green, Up)
         painter.setPen(QColor(0, 255, 0))  # Green
         painter.drawLine(origin_x, origin_y, origin_x, origin_y - axis_length)
+        #painter.drawText(origin_x, origin_y - axis_length - 5, "Y")
         painter.drawText(origin_x, origin_y - axis_length - 5, "Y")
 
         # Z-Axis (Blue, into 3D perspective)
@@ -123,7 +137,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Interactive 3D-Like Grid")
-        self.setGeometry(100, 100, 600, 600)
+        self.setGeometry(100, 100, 1000, 600)
         self.central_widget = GridWidget()
         self.setCentralWidget(self.central_widget)
 
