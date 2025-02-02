@@ -17,7 +17,7 @@ class OpenGLWidget(QOpenGLWidget):
         self.zoom = 1.0
         self.pan_x = 0
         self.pan_y = 0
-        self.rot_x = -45
+        self.rot_x = 0
         self.rot_y = 0
         self.last_mouse_pos = QPoint()
         self.panning = False
@@ -67,13 +67,17 @@ class OpenGLWidget(QOpenGLWidget):
         glPopMatrix()
 
     def draw_highlight(self, x, y):
-        glColor4f(1.0, 0.4, 0.7, 0.5)
+        glPushMatrix()
+        glTranslatef(x + 0.5, y + 0.5, 0.01)  # Center the highlight
+        #glTranslatef(x + 0.1, y + 0.1, 0.01)  # Center the highlight
+        glColor4f(1.0, 0.4, 0.7, 0.5)  # Pink color with transparency
         glBegin(GL_QUADS)
-        glVertex3f(x, y, 0.01)
-        glVertex3f(x + 1, y, 0.01)
-        glVertex3f(x + 1, y + 1, 0.01)
-        glVertex3f(x, y + 1, 0.01)
+        glVertex3f(-0.5, -0.5, 0)
+        glVertex3f(0.5, -0.5, 0)
+        glVertex3f(0.5, 0.5, 0)
+        glVertex3f(-0.5, 0.5, 0)
         glEnd()
+        glPopMatrix()
 
     def mouseMoveEvent(self, event):
         if self.tilting:
@@ -87,14 +91,24 @@ class OpenGLWidget(QOpenGLWidget):
             self.pan_x += dx * 0.05
             self.pan_y -= dy * 0.05
         else:
-            x, y = event.x() // 40, (self.height() - event.y()) // 40  # Corrected grid position
-            if 0 <= x < self.grid_size[0] and 0 <= y < self.grid_size[1]:
-                self.hover_cell = (x, y)
-                if self.mouse_position_label:
-                    self.mouse_position_label.setText(f"Mouse Grid Position: ({x}, {y})")
-            else:
-                self.hover_cell = None
-        
+        # Convert mouse position to grid coordinates
+            #x = (event.x() - self.width() // 2) // 40 + self.grid_size[0] // 2
+            #x = (event.x() - self.width() // 2) // 20 + self.grid_size[0] // 2
+            #x = (event.x() - self.width() // 2) // 10 #+ self.grid_size[0] // 2
+            x = (event.x() - self.width() // 2) // 20
+            #x = event.x() - self.width() 
+            #x = event.x()
+            
+            #y = (self.height() // 2 - event.y()) // 40 + self.grid_size[1] // 2
+            y = (self.height() // 2 - event.y()) // 20 #+ self.grid_size[1] // 2
+
+        if 0 <= x < self.grid_size[0] and 0 <= y < self.grid_size[1]:
+            self.hover_cell = (x, y)
+            if self.mouse_position_label:
+                self.mouse_position_label.setText(f"Mouse Grid Position: ({x}, {y})")
+        else:
+            self.hover_cell = None
+    
         self.last_mouse_pos = event.pos()
         self.update()
 
