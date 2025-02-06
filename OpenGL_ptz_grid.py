@@ -108,13 +108,10 @@ class OpenGLGrid(QOpenGLWidget):
         # Read depth buffer
         z = glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
     
-        if z is not None:
-            z_value = float(z)  # Convert numpy array to float
-
-            # Check if the depth value is valid (avoid background selections)
-            if 0.0 < z_value < 1.0:
-                # Unproject to get world coordinates
-                world_x, world_y, world_z = gluUnProject(x, y, z_value, modelview, projection, viewport)
+        if z is not None and np.isfinite(z):  # Ensure valid depth value
+            z = float(z)
+            if z < 1.0:  # Ignore invalid depth values
+                world_x, world_y, world_z = gluUnProject(x, y, z, modelview, projection, viewport)
 
                 # Convert world coordinates to grid coordinates
                 grid_x = int(round(world_x))
@@ -124,8 +121,6 @@ class OpenGLGrid(QOpenGLWidget):
                     self.hover_cell = (grid_x, grid_y)
                 else:
                     self.hover_cell = None
-            else:
-                self.hover_cell = None  # Ignore invalid selections
 
         self.last_mouse_pos = event.pos()
         self.update()
