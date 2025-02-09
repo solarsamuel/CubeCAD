@@ -112,16 +112,29 @@ class OpenGLGrid(QOpenGLWidget):
 
         if z_buffer is not None:
             z = float(z_buffer)
+            print(f"Mouse: ({x}, {y}) - Depth Buffer: {z:.6f}")  # Debugging depth value
+            
             if 0.0 <= z < 1.0:  # Valid depth values
                 world_x, world_y, world_z = gluUnProject(x, y, z, modelview, projection, viewport)
 
                 # Convert world coordinates to grid coordinates
                 grid_x = int(round(world_x))
                 grid_y = int(round(world_y))
+                
+                print(f"World: ({world_x:.2f}, {world_y:.2f}, {world_z:.2f}) -> Grid: ({grid_x}, {grid_y})")
+                
+                #grid_x = round(world_x)
+                #grid_y = round(world_y)
+                epsilon = 0.001
+                #grid_x = round(world_x + epsilon)
+                #grid_y = round(world_y + epsilon)
+                #grid_x = int(round(world_x + epsilon))
+                #grid_y = int(round(world_y + epsilon))
 
             if 0 <= grid_x < self.grid_size[0] and 0 <= grid_y < self.grid_size[1]:
                 self.hover_cell = (grid_x, grid_y)
             else:
+                print("Invalid depth value, ignoring hover detection.")
                 self.hover_cell = None
 
         self.last_mouse_pos = event.pos()
