@@ -33,7 +33,7 @@ class OpenGLGrid(QOpenGLWidget):
         glViewport(0, 0, w, h)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(45, w / h, 0.1, 50.0)
+        gluPerspective(45, w / h, 0.1, 500.0)
         glMatrixMode(GL_MODELVIEW)
     
     def paintGL(self):
@@ -71,7 +71,8 @@ class OpenGLGrid(QOpenGLWidget):
     def draw_highlight(self, x, y):
         glPushMatrix()
         glTranslatef(x + 0.5, y + 0.5, 0.01)
-        glColor4f(1.0, 0.75, 0.8, 0.6)
+        #glTranslatef(x + 0.1, y + 0.1, 0.01)
+        glColor4f(1.0, 0.75, 0.8, 0.6) #pink with transparency
         glBegin(GL_QUADS)
         glVertex3f(-0.5, -0.5, 0)
         glVertex3f(0.5, -0.5, 0)
@@ -82,48 +83,50 @@ class OpenGLGrid(QOpenGLWidget):
 
 
     def mouseMoveEvent(self, event):
+        dx = event.x() - self.last_mouse_pos.x()
+        dy = event.y() - self.last_mouse_pos.y()
+
         if self.tilting:
-            dx = event.x() - self.last_mouse_pos.x()
-            dy = event.y() - self.last_mouse_pos.y()
             self.rot_x += dy * 0.5
             self.rot_y += dx * 0.5
         elif self.panning:
-            dx = (event.x() - self.last_mouse_pos.x()) * 0.01
-            dy = (event.y() - self.last_mouse_pos.y()) * -0.01
-            self.pan_x += dx
-            self.pan_y += dy
+            self.pan_x += dx * 0.01
+            self.pan_y += -dy * 0.01
 
         # Ensure OpenGL context is valid before reading pixels
-        self.makeCurrent()  
-        #glFlush()
-        #glFinish()
+        self.makeCurrent()
 
         viewport = glGetIntegerv(GL_VIEWPORT)
         modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
         projection = glGetDoublev(GL_PROJECTION_MATRIX)
 
         x = event.x()
-        y = viewport[3] - event.y()  # Convert from window to OpenGL coordinates
-    
+        y = viewport[3] - event.y()  # Convert from window coordinates to OpenGL coordinates
+
         # Read depth buffer
-        z = glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
-    
-        if z is not None and np.isfinite(z):  # Ensure valid depth value
-            z = float(z)
-            if z < 1.0:  # Ignore invalid depth values
+        z_buffer = glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
+
+
+        # Initialize grid_x and grid_y to avoid UnboundLocalError
+        grid_x, grid_y = -1, -1
+
+        if z_buffer is not None:
+            z = float(z_buffer)
+            if 0.0 <= z < 1.0:  # Valid depth values
                 world_x, world_y, world_z = gluUnProject(x, y, z, modelview, projection, viewport)
 
                 # Convert world coordinates to grid coordinates
                 grid_x = int(round(world_x))
                 grid_y = int(round(world_y))
 
-                if 0 <= grid_x < self.grid_size[0] and 0 <= grid_y < self.grid_size[1]:
-                    self.hover_cell = (grid_x, grid_y)
-                else:
-                    self.hover_cell = None
+            if 0 <= grid_x < self.grid_size[0] and 0 <= grid_y < self.grid_size[1]:
+                self.hover_cell = (grid_x, grid_y)
+            else:
+                self.hover_cell = None
 
         self.last_mouse_pos = event.pos()
         self.update()
+
 
     
     
@@ -147,7 +150,9 @@ class OpenGLGrid(QOpenGLWidget):
 
     def wheelEvent(self, event):
         delta = event.angleDelta().y() / 120
-        self.zoom *= math.pow(1.2, delta)
+        #self.zoom *= math.pow(1.2, delta)
+        self.zoom = max(0.1, min(self.zoom * math.pow(1.2, delta), 50.0))  # Prevent excessive zoom out
+
         self.update()
 
     def display_mouse_info(self):
