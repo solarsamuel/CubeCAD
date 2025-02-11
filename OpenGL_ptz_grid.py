@@ -9,12 +9,14 @@ import numpy as np
 
 glutInit()
 
+
 class OpenGLGrid(QOpenGLWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.grid_size = (16, 16)
         self.cube_positions = set()
         self.hover_cell = None
+        self.hover_face = None
         self.zoom = 1.0
         self.pan_x = 0
         self.pan_y = 0
@@ -27,37 +29,35 @@ class OpenGLGrid(QOpenGLWidget):
 
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST)
-        #glClearColor(0.2, 0.2, 0.2, 1.0)
         glClearColor(1.0, 1.0, 1.0, 1.0)
 
     def resizeGL(self, w, h):
         glViewport(0, 0, w, h)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        #gluPerspective(45, w / h, 0.1, 500.0)
         gluPerspective(45, w / h, 1.0, 200.0)
         glMatrixMode(GL_MODELVIEW)
-    
+
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         glTranslatef(self.pan_x, self.pan_y, -20 * self.zoom)
         glRotatef(self.rot_x, 1, 0, 0)
         glRotatef(self.rot_y, 0, 1, 0)
-        
+
         self.draw_grid()
         for pos in self.cube_positions:
             self.draw_cube(pos[0], pos[1])
+
         if self.hover_cell:
-            glDisable(GL_DEPTH_TEST)  # Ignore depth testing
+            glDisable(GL_DEPTH_TEST)
             glEnable(GL_BLEND)
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
             self.draw_highlight(self.hover_cell[0], self.hover_cell[1])
             glDisable(GL_BLEND)
-            glEnable(GL_DEPTH_TEST)  # Re-enable depth test
+            glEnable(GL_DEPTH_TEST)
 
     def draw_grid(self):
-        #glColor3f(0.5, 0.5, 0.5)
         glColor3f(0.0, 0.0, 0.0)
         glBegin(GL_LINES)
         for i in range(self.grid_size[0] + 1):
@@ -71,29 +71,32 @@ class OpenGLGrid(QOpenGLWidget):
     def draw_cube(self, x, y):
         glPushMatrix()
         glTranslatef(x + 0.5, y + 0.5, 0.5)
+
+        # Draw solid cube (gray)
         glColor3f(0.5, 0.5, 0.5)
         glutSolidCube(1)
+
+        # Draw black edges
+        glColor3f(0.0, 0.0, 0.0)
+        glutWireCube(1.02)
+
         glPopMatrix()
 
     def draw_highlight(self, x, y):
         glPushMatrix()
         glTranslatef(x + 0.5, y + 0.5, 0.01)
-        #glTranslatef(x , y , 0.01)
-        #glTranslatef(x + 1.0, y + 1.0, 0.01)
-        
-        glDisable(GL_DEPTH_TEST)  # Disable depth test to always draw on top
-        glColor4f(1.0, 0.75, 0.8, 0.6) #pink with transparency
-                
+        glDisable(GL_DEPTH_TEST)
+        glColor4f(1.0, 0.75, 0.8, 0.6)  # Pink with transparency
+
         glBegin(GL_QUADS)
         glVertex3f(-0.5, -0.5, 0)
         glVertex3f(0.5, -0.5, 0)
         glVertex3f(0.5, 0.5, 0)
         glVertex3f(-0.5, 0.5, 0)
         glEnd()
-        
-        glEnable(GL_DEPTH_TEST)  # Re-enable depth test for subsequent objects
-        glPopMatrix()
 
+        glEnable(GL_DEPTH_TEST)
+        glPopMatrix()
 
     def mouseMoveEvent(self, event):
         dx = event.x() - self.last_mouse_pos.x()
@@ -106,7 +109,6 @@ class OpenGLGrid(QOpenGLWidget):
             self.pan_x += dx * 0.01
             self.pan_y += -dy * 0.01
 
-        # Ensure OpenGL context is valid before reading pixels
         self.makeCurrent()
 
         viewport = glGetIntegerv(GL_VIEWPORT)
@@ -114,34 +116,27 @@ class OpenGLGrid(QOpenGLWidget):
         projection = glGetDoublev(GL_PROJECTION_MATRIX)
 
         x = event.x()
-        y = viewport[3] - event.y()  # Convert from window coordinates to OpenGL coordinates
+        y = viewport[3] - event.y()
 
-        # Unproject two points: one at the near plane (z=0) and one at the far plane (z=1)
         near_x, near_y, near_z = gluUnProject(x, y, 0, modelview, projection, viewport)
         far_x, far_y, far_z = gluUnProject(x, y, 1, modelview, projection, viewport)
 
-        # Compute the intersection of the mouse ray with the grid plane (z=0)
         t = -near_z / (far_z - near_z) if (far_z - near_z) != 0 else 0
         world_x = near_x + t * (far_x - near_x)
         world_y = near_y + t * (far_y - near_y)
 
-        # Convert world coordinates to grid indices
-        #grid_x = int(math.floor(world_x + 0.5))
-        #grid_y = int(math.floor(world_y + 0.5))
-        grid_x = int(math.floor(world_x ))
-        grid_y = int(math.floor(world_y ))
+        grid_x = int(math.floor(world_x))
+        grid_y = int(math.floor(world_y))
 
-        # Ensure we are within valid grid boundaries
         if 0 <= grid_x < self.grid_size[0] and 0 <= grid_y < self.grid_size[1]:
             self.hover_cell = (grid_x, grid_y)
         else:
             self.hover_cell = None
-        
+
         self.last_mouse_pos = event.pos()
         self.update()
 
-
-    def mousePressEvent(self, event): #this change disables pan and tilt
+    def mousePressEvent(self, event):
         self.last_mouse_pos = event.pos()
         if event.button() == Qt.LeftButton and self.hover_cell:
             if self.hover_cell in self.cube_positions:
@@ -160,27 +155,22 @@ class OpenGLGrid(QOpenGLWidget):
 
     def wheelEvent(self, event):
         delta = event.angleDelta().y() / 120
-        #self.zoom *= math.pow(1.2, delta)
-        self.zoom = max(0.1, min(self.zoom * math.pow(1.2, delta), 50.0))  # Prevent excessive zoom out
-
+        self.zoom = max(0.1, min(self.zoom * math.pow(1.2, delta), 50.0))
         self.update()
 
     def display_mouse_info(self):
         glColor3f(1.0, 1.0, 1.0)
-    
-    # Display mouse position
         glWindowPos2f(10, 10)
         text = f"Mouse: {self.mouse_pos.x()}, {self.mouse_pos.y()}"
         for char in text:
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
 
-    # Display grid cell coordinates
         glWindowPos2f(10, 25)
         grid_text = f"Grid Cell: {self.hover_cell}" if self.hover_cell else "Grid Cell: None"
         for char in grid_text:
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
 
-    
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -188,6 +178,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1000, 600)
         self.central_widget = OpenGLGrid()
         self.setCentralWidget(self.central_widget)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
