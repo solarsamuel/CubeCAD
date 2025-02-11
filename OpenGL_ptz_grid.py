@@ -34,7 +34,7 @@ class OpenGLGrid(QOpenGLWidget):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         #gluPerspective(45, w / h, 0.1, 500.0)
-        gluPerspective(45, w / h, 1.0, 100.0)
+        gluPerspective(45, w / h, 1.0, 200.0)
         glMatrixMode(GL_MODELVIEW)
     
     def paintGL(self):
@@ -57,6 +57,7 @@ class OpenGLGrid(QOpenGLWidget):
 
     def draw_grid(self):
         glColor3f(0.5, 0.5, 0.5)
+        #glColor3f(0.0, 0.0, 0.0)
         glBegin(GL_LINES)
         for i in range(self.grid_size[0] + 1):
             glVertex3f(i, 0, 0)
@@ -76,20 +77,18 @@ class OpenGLGrid(QOpenGLWidget):
     def draw_highlight(self, x, y):
         glPushMatrix()
         glTranslatef(x + 0.5, y + 0.5, 0.01)
-        #glTranslatef(x + 0.1, y + 0.1, 0.01)
+        #glTranslatef(x , y , 0.01)
+        #glTranslatef(x + 1.0, y + 1.0, 0.01)
         
         glDisable(GL_DEPTH_TEST)  # Disable depth test to always draw on top
         glColor4f(1.0, 0.75, 0.8, 0.6) #pink with transparency
-        
+                
         glBegin(GL_QUADS)
         glVertex3f(-0.5, -0.5, 0)
         glVertex3f(0.5, -0.5, 0)
         glVertex3f(0.5, 0.5, 0)
         glVertex3f(-0.5, 0.5, 0)
         glEnd()
-        
-        
-        
         
         glEnable(GL_DEPTH_TEST)  # Re-enable depth test for subsequent objects
         glPopMatrix()
@@ -126,8 +125,10 @@ class OpenGLGrid(QOpenGLWidget):
         world_y = near_y + t * (far_y - near_y)
 
         # Convert world coordinates to grid indices
-        grid_x = int(math.floor(world_x + 0.5))
-        grid_y = int(math.floor(world_y + 0.5))
+        #grid_x = int(math.floor(world_x + 0.5))
+        #grid_y = int(math.floor(world_y + 0.5))
+        grid_x = int(math.floor(world_x ))
+        grid_y = int(math.floor(world_y ))
 
         # Ensure we are within valid grid boundaries
         if 0 <= grid_x < self.grid_size[0] and 0 <= grid_y < self.grid_size[1]:
@@ -135,14 +136,9 @@ class OpenGLGrid(QOpenGLWidget):
         else:
             self.hover_cell = None
         
-        
-
         self.last_mouse_pos = event.pos()
         self.update()
 
-
-    
-    
 
     def mousePressEvent(self, event): #this change disables pan and tilt
         self.last_mouse_pos = event.pos()
