@@ -33,7 +33,8 @@ class OpenGLGrid(QOpenGLWidget):
         glViewport(0, 0, w, h)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(45, w / h, 0.1, 500.0)
+        #gluPerspective(45, w / h, 0.1, 500.0)
+        gluPerspective(45, w / h, 1.0, 100.0)
         glMatrixMode(GL_MODELVIEW)
     
     def paintGL(self):
@@ -47,8 +48,12 @@ class OpenGLGrid(QOpenGLWidget):
         for pos in self.cube_positions:
             self.draw_cube(pos[0], pos[1])
         if self.hover_cell:
+            glDisable(GL_DEPTH_TEST)  # Ignore depth testing
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
             self.draw_highlight(self.hover_cell[0], self.hover_cell[1])
-
+            glDisable(GL_BLEND)
+            glEnable(GL_DEPTH_TEST)  # Re-enable depth test
 
     def draw_grid(self):
         glColor3f(0.5, 0.5, 0.5)
@@ -72,13 +77,21 @@ class OpenGLGrid(QOpenGLWidget):
         glPushMatrix()
         glTranslatef(x + 0.5, y + 0.5, 0.01)
         #glTranslatef(x + 0.1, y + 0.1, 0.01)
+        
+        glDisable(GL_DEPTH_TEST)  # Disable depth test to always draw on top
         glColor4f(1.0, 0.75, 0.8, 0.6) #pink with transparency
+        
         glBegin(GL_QUADS)
         glVertex3f(-0.5, -0.5, 0)
         glVertex3f(0.5, -0.5, 0)
         glVertex3f(0.5, 0.5, 0)
         glVertex3f(-0.5, 0.5, 0)
         glEnd()
+        
+        
+        
+        
+        glEnable(GL_DEPTH_TEST)  # Re-enable depth test for subsequent objects
         glPopMatrix()
 
 
@@ -103,39 +116,26 @@ class OpenGLGrid(QOpenGLWidget):
         x = event.x()
         y = viewport[3] - event.y()  # Convert from window coordinates to OpenGL coordinates
 
-        # Read depth buffer
-        z_buffer = glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
+        # Unproject two points: one at the near plane (z=0) and one at the far plane (z=1)
+        near_x, near_y, near_z = gluUnProject(x, y, 0, modelview, projection, viewport)
+        far_x, far_y, far_z = gluUnProject(x, y, 1, modelview, projection, viewport)
 
+        # Compute the intersection of the mouse ray with the grid plane (z=0)
+        t = -near_z / (far_z - near_z) if (far_z - near_z) != 0 else 0
+        world_x = near_x + t * (far_x - near_x)
+        world_y = near_y + t * (far_y - near_y)
 
-        # Initialize grid_x and grid_y to avoid UnboundLocalError
-        grid_x, grid_y = -1, -1
+        # Convert world coordinates to grid indices
+        grid_x = int(math.floor(world_x + 0.5))
+        grid_y = int(math.floor(world_y + 0.5))
 
-        if z_buffer is not None:
-            z = float(z_buffer)
-            print(f"Mouse: ({x}, {y}) - Depth Buffer: {z:.6f}")  # Debugging depth value
-            
-            if 0.0 <= z < 1.0:  # Valid depth values
-                world_x, world_y, world_z = gluUnProject(x, y, z, modelview, projection, viewport)
-
-                # Convert world coordinates to grid coordinates
-                grid_x = int(round(world_x))
-                grid_y = int(round(world_y))
-                
-                print(f"World: ({world_x:.2f}, {world_y:.2f}, {world_z:.2f}) -> Grid: ({grid_x}, {grid_y})")
-                
-                #grid_x = round(world_x)
-                #grid_y = round(world_y)
-                epsilon = 0.001
-                #grid_x = round(world_x + epsilon)
-                #grid_y = round(world_y + epsilon)
-                #grid_x = int(round(world_x + epsilon))
-                #grid_y = int(round(world_y + epsilon))
-
-            if 0 <= grid_x < self.grid_size[0] and 0 <= grid_y < self.grid_size[1]:
-                self.hover_cell = (grid_x, grid_y)
-            else:
-                print("Invalid depth value, ignoring hover detection.")
-                self.hover_cell = None
+        # Ensure we are within valid grid boundaries
+        if 0 <= grid_x < self.grid_size[0] and 0 <= grid_y < self.grid_size[1]:
+            self.hover_cell = (grid_x, grid_y)
+        else:
+            self.hover_cell = None
+        
+        
 
         self.last_mouse_pos = event.pos()
         self.update()
