@@ -27,7 +27,8 @@ class OpenGLGrid(QOpenGLWidget):
 
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST)
-        glClearColor(0.2, 0.2, 0.2, 1.0)
+        #glClearColor(0.2, 0.2, 0.2, 1.0)
+        glClearColor(1.0, 1.0, 1.0, 1.0)
 
     def resizeGL(self, w, h):
         glViewport(0, 0, w, h)
@@ -56,8 +57,8 @@ class OpenGLGrid(QOpenGLWidget):
             glEnable(GL_DEPTH_TEST)  # Re-enable depth test
 
     def draw_grid(self):
-        glColor3f(0.5, 0.5, 0.5)
-        #glColor3f(0.0, 0.0, 0.0)
+        #glColor3f(0.5, 0.5, 0.5)
+        glColor3f(0.0, 0.0, 0.0)
         glBegin(GL_LINES)
         for i in range(self.grid_size[0] + 1):
             glVertex3f(i, 0, 0)
