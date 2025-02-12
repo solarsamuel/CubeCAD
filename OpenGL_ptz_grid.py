@@ -147,20 +147,21 @@ class OpenGLGrid(QOpenGLWidget):
 
         self.last_mouse_pos = event.pos()
         self.update()
-
+    
     def mousePressEvent(self, event):
-        self.last_mouse_pos = event.pos()
         if event.button() == Qt.LeftButton and self.hover_cell:
-            if self.hover_cell in self.cube_positions:
-                self.cube_positions.remove(self.hover_cell)
-            else:
+            if self.placing_mode:
                 self.cube_positions.add(self.hover_cell)
+            else:
+                self.cube_positions.discard(self.hover_cell)
         elif event.button() == Qt.RightButton:
             self.tilting = True
         elif event.button() == Qt.MidButton:
             self.panning = True
+                
         self.update()
-
+     
+     
     def mouseReleaseEvent(self, event):
         self.tilting = False
         self.panning = False
