@@ -4,7 +4,7 @@ If you download or copy this material then you agree to this. If you remix, tran
 '''
 import sys
 import math
-from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget, QAction, QToolBar
 from PyQt5.QtCore import Qt, QPoint
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -30,6 +30,14 @@ class OpenGLGrid(QOpenGLWidget):
         self.panning = False
         self.tilting = False
         self.setMouseTracking(True)
+        
+        self.placing_mode = True  # True for placing, False for erasing
+
+    def set_placing_mode(self):
+        self.placing_mode = True
+
+    def set_erasing_mode(self):
+        self.placing_mode = False
 
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST)
@@ -162,27 +170,29 @@ class OpenGLGrid(QOpenGLWidget):
         self.zoom = max(0.1, min(self.zoom * math.pow(1.2, delta), 50.0))
         self.update()
 
-    def display_mouse_info(self):
-        glColor3f(1.0, 1.0, 1.0)
-        glWindowPos2f(10, 10)
-        text = f"Mouse: {self.mouse_pos.x()}, {self.mouse_pos.y()}"
-        for char in text:
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
-
-        glWindowPos2f(10, 25)
-        grid_text = f"Grid Cell: {self.hover_cell}" if self.hover_cell else "Grid Cell: None"
-        for char in grid_text:
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Interactive 3D Grid with Cubes")
+        self.setWindowTitle("CubeCAD V1.0")
         self.setGeometry(100, 100, 1000, 600)
         self.central_widget = OpenGLGrid()
         self.setCentralWidget(self.central_widget)
-
+        self.initUI()
+        
+    def initUI(self):
+        toolbar = QToolBar("Main Toolbar")
+        self.addToolBar(toolbar)
+        
+        place_action = QAction("Place Cube", self)
+        place_action.triggered.connect(self.central_widget.set_placing_mode)
+        toolbar.addAction(place_action)
+        
+        erase_action = QAction("Erase Cube", self)
+        erase_action.triggered.connect(self.central_widget.set_erasing_mode)
+        toolbar.addAction(erase_action)
+        
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
