@@ -1,3 +1,7 @@
+'''
+LIMITED LICENSE (ZERO-FIVE LICENSE) – Material contained are free for individual use, commercial use subject to royalty:  Free use of this material is allowed for personal use only.  Credit must be provided to the License owner, Sam Wechsler.  Any commercial use of this material is subject to a 5% royalty on gross income on any sale or transaction which utilizes this material. 
+If you download or copy this material then you agree to this. If you remix, transform, or build upon the material, you may not distribute the modified material. Exemptions may be made with Sam Wechsler's consent on a signed waiver. Contact Sam Wechsler with any questions: info@wexventures.net
+'''
 import sys
 import math
 from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget
@@ -185,3 +189,4 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+    #Q29weXJpZ2h0IFNhbSBXZWNoc2xlcg==
