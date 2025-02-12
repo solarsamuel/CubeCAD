@@ -4,7 +4,7 @@ If you download or copy this material then you agree to this. If you remix, tran
 '''
 import sys
 import math
-from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget, QAction, QToolBar
+from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget, QAction, QToolBar, QToolButton
 from PyQt5.QtCore import Qt, QPoint
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -181,19 +181,45 @@ class MainWindow(QMainWindow):
         self.central_widget = OpenGLGrid()
         self.setCentralWidget(self.central_widget)
         self.initUI()
-        
+
     def initUI(self):
         toolbar = QToolBar("Main Toolbar")
         self.addToolBar(toolbar)
-        
-        place_action = QAction("Place Cube", self)
-        place_action.triggered.connect(self.central_widget.set_placing_mode)
-        toolbar.addAction(place_action)
-        
-        erase_action = QAction("Erase Cube", self)
-        erase_action.triggered.connect(self.central_widget.set_erasing_mode)
-        toolbar.addAction(erase_action)
-        
+
+        self.place_action = QAction("Place Cube", self)
+        self.place_action.triggered.connect(self.set_placing_mode)
+        toolbar.addAction(self.place_action)
+
+        self.erase_action = QAction("Erase Cube", self)
+        self.erase_action.triggered.connect(self.set_erasing_mode)
+        toolbar.addAction(self.erase_action)
+
+        # Store action buttons
+        self.place_button = toolbar.widgetForAction(self.place_action)
+        self.erase_button = toolbar.widgetForAction(self.erase_action)
+
+        self.update_button_styles()
+
+    def set_placing_mode(self):
+        self.central_widget.set_placing_mode()
+        self.update_button_styles()
+
+    def set_erasing_mode(self):
+        self.central_widget.set_erasing_mode()
+        self.update_button_styles()
+
+    def update_button_styles(self):
+        """Update button styles based on placing mode"""
+        if self.central_widget.placing_mode:
+            if self.place_button:
+                self.place_button.setStyleSheet("background-color: darkgray; color: white;")
+            if self.erase_button:
+                self.erase_button.setStyleSheet("")
+        else:
+            if self.erase_button:
+                self.erase_button.setStyleSheet("background-color: darkgray; color: white;")
+            if self.place_button:
+                self.place_button.setStyleSheet("")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
