@@ -4,7 +4,7 @@ If you download or copy this material then you agree to this. If you remix, tran
 '''
 import sys
 import math
-from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget, QAction, QToolBar, QToolButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QOpenGLWidget, QAction, QToolBar, QToolButton, QTextEdit, QVBoxLayout, QWidget
 from PyQt5.QtCore import Qt, QPoint
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -21,9 +21,15 @@ class OpenGLGrid(QOpenGLWidget):
         self.cube_positions = set()
         self.hover_cell = None
         self.hover_face = None
+        '''
         self.zoom = 1.0
         self.pan_x = 0
         self.pan_y = 0
+        '''
+        self.zoom = 1.3 # Zoomed out twice as far
+        self.pan_x = -5.0  # Shift left by 100 pixels (adjusted for OpenGL units)
+        self.pan_y = -8.0  # Shift down by 100 pixels (adjusted for OpenGL units)
+        
         self.rot_x = 0
         self.rot_y = 0
         self.last_mouse_pos = QPoint()
@@ -32,6 +38,8 @@ class OpenGLGrid(QOpenGLWidget):
         self.setMouseTracking(True)
         
         self.placing_mode = True  # True for placing, False for erasing
+        self.event_log = []  # Store event logs
+
 
     def set_placing_mode(self):
         self.placing_mode = True
