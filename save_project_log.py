@@ -16,42 +16,27 @@ import numpy as np
 
 glutInit()
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CubeCAD V1.0")
         self.setGeometry(100, 100, 1000, 600)
-        
-        
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-    
         self.opengl_grid = OpenGLGrid(self)
-    
         self.event_log_widget = QTextEdit()
-        
-        
-        self.event_log_widget.setStyleSheet("background-color: #f0f0f0;")
-        
+        self.event_log_widget.setStyleSheet("background-color: #f0f0f0;")        
         # Project log label
         self.event_log_label = QLabel("Project Log")
         #self.event_log_label.setStyleSheet("font-weight: bold;")
-
         self.event_log_widget.setReadOnly(True)
     
-        '''
-        layout = QVBoxLayout(self.central_widget)
-        layout.addWidget(self.opengl_grid, 3)  # Give OpenGL more weight
-        layout.addWidget(self.event_log_widget, 1)  # Reduce event log height
-        '''
         # Layout
         layout = QVBoxLayout()
         #layout.addWidget(self.event_log_label)
         #layout.addWidget(self.event_log_widget)
         layout.addWidget(self.event_log_label)
-        layout.addWidget(self.event_log_widget, 1)
-        
+        layout.addWidget(self.event_log_widget, 1)        
         container = QWidget()
         container.setLayout(layout)
 
@@ -59,7 +44,6 @@ class MainWindow(QMainWindow):
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.opengl_grid, 10)
         main_layout.addWidget(container)
-
         self.central_widget.setLayout(main_layout)
 
         # Toolbar
@@ -73,10 +57,10 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(save_button)
 
         # Place Cube Button
-        place_cube_button = QToolButton()
-        place_cube_button.setText("Place Cube")
-        place_cube_button.clicked.connect(self.opengl_grid.set_placing_mode)
-        toolbar.addWidget(place_cube_button)
+        #place_cube_button = QToolButton()
+        #place_cube_button.setText("Place Cube")
+        #place_cube_button.clicked.connect(self.opengl_grid.set_placing_mode)
+        #toolbar.addWidget(place_cube_button)
         
         
         self.initUI()
