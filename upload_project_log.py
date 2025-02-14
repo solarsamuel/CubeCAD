@@ -307,6 +307,7 @@ class OpenGLGrid(QOpenGLWidget):
     def load_project_log(self, filepath):
         """Load a project log file, clear the scene, and process commands."""
         self.cube_positions.clear()  # Clear all cubes
+        print(f"Cubes cleared: ")
         self.event_log.clear()  # Clear the event log
 
         try:
